@@ -1,13 +1,14 @@
-FROM node:14 AS api-development
+FROM node:16
 
-WORKDIR /home/ana/real-time-chat-app/api
-COPY package*.json ./
+WORKDIR /usr/src/app
+
+COPY package*.json .
+
 RUN npm install
+
 COPY . .
 RUN npm run build
 EXPOSE 3000
-
-#production
 
 FROM node:14 AS production
 ARG NODE_ENV=production
