@@ -6,20 +6,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
-ConfigModule.forRoot({isGlobal: true}),
-// TypeOrmModule.forRoot({
-//   type: 'postgres',
-//   url: process.env.DATABASE_URL,
-//   autoLoadEntities: true,
-//   synchronize: true,
-//   // host: 'localhost', 
-//   // port: 5432, 
-//   // username: 'user',
-//   // password: 'password',
-//   // database: 'postgres',
-//   // entities: [__dirname + '/**/*.entity{.ts,.js}'],
-
-// }),
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'postgres',
+      port: 5432,
+      username: 'user',
+      password: 'password',
+      database: 'postgres',
+      autoLoadEntities: true,
+      synchronize: true,
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
