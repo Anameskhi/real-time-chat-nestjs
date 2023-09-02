@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IPaginationOptions, Pagination, paginate } from 'nestjs-typeorm-paginate';
 import { Observable, from, map, mapTo, switchMap } from 'rxjs';
+import { AuthService } from 'src/auth/service/auth.service';
 import { UserEntity } from 'src/user/model/user.entity';
 import { IUser } from 'src/user/model/user.interface';
 import { Repository } from 'typeorm';
@@ -11,7 +12,8 @@ const bcrypt  = require('bcrypt')
 export class UserService {
     constructor(
         @InjectRepository(UserEntity)
-        private readonly userRepository: Repository<UserEntity>
+        private readonly userRepository: Repository<UserEntity>,
+        private authService: AuthService
     ){
         
     }
@@ -35,37 +37,35 @@ export class UserService {
 
     }
 
-    login(user: IUser): Observable<boolean>{
+    login(user: IUser): Observable<string> {
         return this.findByEmail(user.email).pipe(
-            switchMap((foundUser: IUser)=> {
-                if(foundUser){
-                    return this.validatePassword(user.password,foundUser.password).pipe(
-                        switchMap((matches: boolean)=>{
-                            if(matches){
-                                return this.findOne(foundUser.id).pipe(mapTo(true))
-
-                            }else{
-                                throw new HttpException('Login was not successfull, wrong credentials',HttpStatus.UNAUTHORIZED)
-                            }
-
-                        }
-                        )
-                    )
-
-                }else{
-                    throw new HttpException('User not found',HttpStatus.NOT_FOUND)
+            switchMap((foundUser: IUser) => {
+                if (!foundUser) {
+                    throw new HttpException('User not found', HttpStatus.NOT_FOUND);
                 }
+
+                return this.validatePassword(user.password, foundUser.password).pipe(
+                    switchMap((matches: boolean) => {
+                        if (!matches) {
+                            throw new HttpException(
+                                'Login was not successful, wrong credentials',
+                                HttpStatus.UNAUTHORIZED
+                            );
+                        }
+
+                        return this.findOne(foundUser.id).pipe(
+                            switchMap((payload: IUser) => {
+                                return this.authService.generateJwt(payload);
+                            })
+                        );
+                    })
+                );
             })
-        )
+        );
     }
 
     getAllUsers(options: IPaginationOptions):Observable<Pagination<IUser>>{
         return from(paginate<UserEntity>(this.userRepository,options))
-    }
-
-    private validatePassword(password: string,storedPasswordHash: string): Observable<any>{
-        return from(bcrypt.compare(password,storedPasswordHash))
-
     }
 
     private findByEmail(email: string): Observable<IUser> {
@@ -76,7 +76,11 @@ export class UserService {
     }
 
     private hashPassword(password: string): Observable<string>{
-        return from<string>(bcrypt.hash(password, 12))
+        return this.authService.hashPassword(password)
+    }
+    
+    private validatePassword(password: string,storedPasswordHash: string): Observable<any>{
+        return this.authService.comparePassword(password,storedPasswordHash)
     }
 
     private findOne(id: number): Observable<IUser>{
