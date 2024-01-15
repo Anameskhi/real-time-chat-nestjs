@@ -13,14 +13,14 @@ import { AuthModule } from './auth/auth.module';
       type: 'postgres',
       host: 'postgres',
       port: 5432,
-      username: 'user',
-      password: 'password',
+      username: 'postgres',
+      password: 'postgres',
       database: 'postgres',  
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: true
     }),
     UserModule,
-    AuthModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],
