@@ -17,10 +17,10 @@ import { AuthModule } from './auth/auth.module';
       password: 'postgres',
       database: 'postgres',
       autoLoadEntities: true,
-      synchronize: true
+      synchronize: true,
     }),
     UserModule,
-    AuthModule
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

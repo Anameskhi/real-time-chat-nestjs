@@ -9,16 +9,15 @@ import { JwtAuthGuard } from './guards/jwt.guard';
 @Module({
   imports: [
     JwtModule.registerAsync({
-        imports: [ConfigModule],
-        inject: [ConfigService],
-        useFactory: async(configService: ConfigService) => ({
-            secret: configService.get('JWT_SECRET'),
-            signOptions: {expiresIn: '10000s'}
-        })
-    })
-
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+        signOptions: { expiresIn: '10000s' },
+      }),
+    }),
   ],
   providers: [AuthService, JwtStrategy, JwtAuthGuard],
-  exports: [AuthService]
+  exports: [AuthService],
 })
 export class AuthModule {}
